@@ -1,0 +1,282 @@
+% ****** Start of file template-TIF360-FYM360-blindtext.tex ******
+%
+% use on Overleaf!!!!
+%
+\documentclass[%
+ reprint,
+ amsmath,amssymb,
+ aps,
+]{revtex4-2}
+\usepackage{lipsum}
+\usepackage{biblatex}
+\usepackage{graphicx}% Include figure files
+\usepackage{dcolumn}% Align table columns on decimal point
+\usepackage{bm}% bold math
+\usepackage{hyperref}% add hypertext capabilities
+%\usepackage[mathlines]{lineno}% Enable numbering of text and display math
+%\linenumbers\relax % Commence numbering lines
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{lipsum}
+\addbibresource{ref.bib}
+
+\begin{document}
+
+\title{Solving jigsaw puzzles and enhancing image using deep learning}% Force line breaks with \\
+
+\author{Ali Soltani}
+
+
+\date{\today}% It is always \today, today,
+             %  but any date may be explicitly specified
+
+\begin{abstract} %%% DO NOT CHANGE!
+%%% - B1 - %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%%% Customize this part: text between - B1 - and - E1 - must not appear in the final report 
+
+Solving jigsaw puzzles is intuitive for humans but remains challenging for machines due to the complexity of visual pattern recognition. This project addresses the task of solving grayscale, noisy 3×3 jigsaw puzzles using deep learning, followed by denoising and colorization for image enhancement. The pipeline includes: (1) a ResNet 50 based CNN trained on 10,000 cat and dog images, achieving 98\% accuracy on 1,000 validation samples; (2) a U-Net denoising model trained on noisy/clean image pairs, with a loss of 0.0015; and (3) a conditional GAN for colorization, using a U-Net generator and CNN discriminator, optimized with adversarial loss and mixed precision training, achieving a loss of 0.086.
+%%% - E1 - %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{description} %%% DO NOT CHANGE!
+\item[Project Topic] %%% DO NOT CHANGE!
+{Project I: Recovering and enhancing images: solving noisy jigsaw puzzles} %CHANGE accordingly
+\item[Teaching Assistant] %%% DO NOT CHANGE!
+{Mirja Granfors} % CHANGE accordingly
+\end{description} %%% DO NOT CHANGE!
+\end{abstract}
+
+\maketitle
+
+
+
+
+\section{\label{sec:intro}Introduction} %%% DO NOT CHANGE!
+The project addresses three main challenges: solving jigsaw puzzles, denoising, and colorizing images to enhance image quality.
+
+Solving jigsaw puzzles has a long history, dating back to around 1760, when the first puzzles were made from wooden boards using a hand tool called a "jigsaw." Since then, the jigsaw puzzle has evolved significantly \cite{jigsaw1}. The key challenges in solving jigsaw puzzles include finding the correct combinations which grow exponentially with the number of tiles identifying matching shapes, and integrating content. All of these are non trivial tasks for computers \cite{jigsaw2}.
+
+Several computational approaches have been proposed to solve the jigsaw puzzle problem. Common combinatorial techniques include Greedy Search, Genetic Algorithms, and Simulated Annealing. In recent years, deep learning approaches particularly Convolutional Neural Networks (CNNs) and Reinforcement Learning have shown promising results. Among these, CNNs are the most commonly used due to their simplicity and widespread support. Although Reinforcement Learning has also demonstrated good performance, CNNs were chosen for this project because of their lower complexity and greater availability of resources \cite{jigsaw2}.
+
+The next step in the project is image denoising. Denoising an image can be a challenging task, but deep neural networks have made it significantly more manageable. The most effective method for training a model to denoise images is using an autoencoder \cite{denoising}.
+
+For colorizing grayscale images, several approaches exist, such as using autoencoders or Generative Adversarial Networks (GANs). Colorization is useful for tasks like restoring historical or damaged images. However, these models are not always perfect and may struggle with transparent or translucent objects \cite{color}. 
+
+In this project, a GAN based method was selected for image colorization, as GANs employ an adversarial loss function that encourages the generation of realistic results \cite{color2}.
+
+
+
+
+\section{\label{sec:overview}Overview} %%% DO NOT CHANGE!
+
+This project aims to enhance the quality of old or degraded grayscale images through a multi stage deep learning pipeline involving spatial reconstruction, denoising, and colorization. The task begins with solving 3×3 grayscale jigsaw puzzles, a problem that challenges machine perception due to fragmented spatial dependencies and noise. To address this, a deep Convolutional Neural Network (CNN) based on ResNet 50 is trained to predict the correct arrangement of image tiles. Trained on 10,000 labeled images and evaluated on a 1,000 sample validation set, this model achieves high spatial reconstruction accuracy.
+
+Once reassembled, the images undergo denoising through a U-Net model trained on paired noisy and clean images. The U-Net's skip connections enable the retention of fine structural details while effectively removing visual noise, as indicated by its low reconstruction loss. In the final stage, a conditional Generative Adversarial Network (cGAN) is employed for image colorization. The generator, built on a U-Net backbone, works alongside a CNN based discriminator to produce high fidelity, colorized outputs. The adversarial training strategy, combined with mixed precision optimization, allows for sharper and more realistic color reconstructions.
+
+Together, these models form a cohesive system that progresses from structure restoration to perceptual enhancement, showcasing the strengths of deep learning in tackling complex image restoration tasks.
+
+\begin{table*}[ht]
+    \caption{\textbf{Overview of ML methods/models}}  
+    \label{tab:methodsoverview}
+    \centering
+    \begin{tabular}{|p{3cm}|p{3.5cm}|p{6cm}|p{3cm}|}
+    \hline
+       \textbf{Method}  &  \textbf{Use case scenario}   &  \textbf{Features (Advantage / Disadvantage)}  &  \textbf{Suitable for the project?}   \\
+    \hline
+    Convolutional Neural Networks (CNNs)  & Feature extraction and jigsaw puzzle solving. & Deep residual connections in ResNet 50 facilitate robust pattern recognition. Advantage: strong spatial feature learning and high classification accuracy. Disadvantage: may require extensive data and tuning. & Yes -- as the core for puzzle piece arrangement. \\
+    \hline
+
+    U-Net Architectures  & Image denoising and colorization. & Symmetric encoder–decoder with skip connections preserves spatial detail. Advantage: precise localization and edge retention. Disadvantage: high memory use. & Yes -- used for denoising and as a generator in the GAN. \\
+    \hline
+    Generative Adversarial Networks (GANs)  & Image colorization refinement. & Adversarial framework ensures realistic output. Advantage: produces sharp, vivid images. Disadvantage: training can be unstable. & Yes -- for final image enhancement and colorization. \\
+    \hline
+    \end{tabular}
+\end{table*}
+
+
+
+
+\section{\label{sec:method}Method} %%% DO NOT CHANGE!
+
+This project proposes a multi stage deep learning pipeline to restore and enhance grayscale, noisy images through a sequence of tasks: jigsaw puzzle reconstruction, image denoising, and image colorization. Each task is addressed with a specialized neural architecture, chosen for its effectiveness in spatial understanding, low level pixel recovery, and semantic aware image generation respectively.
+
+\subsection{Stage 1: Jigsaw Puzzle Reconstruction}
+
+The first task in the pipeline is the spatial reassembly of a scrambled image presented as a $3\times3$ jigsaw puzzle. This task promotes learning of object level semantic understanding and spatial relationships between image regions. 
+
+\subsubsection{Dataset Preparation}
+
+Input images were first resized to $255\times255$ and converted to grayscale. Each image was then divided into 9 equal $96\times96$ tiles using a custom PyTorch \texttt{Dataset} class. Gaussian noise with zero mean and a standard deviation $\sigma = 0.1$ was added to each tile. The tiles were then randomly shuffled and paired with a ground truth label representing the original tile order (as a permutation of indices 0 to 8).
+
+\subsubsection{Model Architecture}
+
+I adopted a modified ResNet 50 as the base model to extract deep features from each tile. The initial convolutional layer was reconfigured to accept single channel grayscale input. The output from each tile encoder was a 512 dimensional feature vector. These tile embeddings were fed into a transformer encoder consisting of 2 layers and 8 multi head self attention blocks, designed to capture inter tile contextual relationships.
+
+To model the assignment problem (which tile goes where),  a slot wise prediction mechanism were used, for each tile, the model predicted its correct position among the 9 possible slots using a fully connected classifier head.
+
+\subsubsection{Loss and Optimization}
+
+A Label Smoothing Cross Entropy (LSCE) loss was used to regularize overconfident predictions and improve generalization. During validation and evaluation, the Hungarian algorithm was employed to compute the optimal tile assignment, providing order invariant accuracy. Training was conducted using the AdamW optimizer with an initial learning rate of $1 \times 10^{-4}$ and weight decay of $1 \times 10^{-4}$. A warm up scheduler with cosine annealing helped stabilize convergence.
+
+The model was trained for 300 epochs with early stopping triggered after 5 epochs of no improvement on the validation set.
+
+\subsection{Stage 2: Image Denoising with U-Net}
+
+The second task addresses image restoration by denoising the jigsaw reassembled grayscale images. 
+
+\subsubsection{Dataset Generation}
+
+Training data for this task was constructed by adding Gaussian noise ($\sigma = 0.1$) to clean grayscale images. A PyTorch wrapper class dynamically injected noise during each training iteration, ensuring model robustness to variations in noise realization.
+
+\subsubsection{Model Architecture}
+
+A U-Net architecture was chosen for its effectiveness in biomedical image segmentation and pixel level prediction tasks. The encoder consisted of sequential convolutional and max pooling layers that reduced spatial resolution while increasing feature abstraction. The decoder mirrored this architecture, performing up sampling and convolution to reconstruct the image. Skip connections between encoder and decoder layers preserved fine grained features, enabling precise denoising.
+
+\subsubsection{Training and Evaluation}
+
+The model was trained using the Mean Squared Error (MSE) loss between the predicted and clean image pixels. Optimization was performed using Adam with a learning rate of $1 \times 10^{-3}$ and batch size of 16. Model performance was evaluated using Peak Signal to Noise Ratio (PSNR) and Structural Similarity Index Measure (SSIM). 
+
+\subsection{Stage 3: Image Colorization with Conditional GAN}
+
+The final stage of the pipeline performs image colorization, transforming denoised grayscale images into full color RGB images.
+
+\subsubsection{Model Architecture}
+
+A conditional Generative Adversarial Network (cGAN) was employed. The generator adopted a U-Net structure, where the grayscale image served as input and the output was a 3 channel color image. The discriminator, based on a patch based CNN, judged the realism of generated colors conditioned on the input grayscale image.
+
+\subsubsection{Loss Functions}
+
+The generator was optimized with a combination of adversarial loss  and $L_1$ loss (to minimize the difference from ground truth RGB images), defined as:
+\[
+\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{adv}} + \lambda \mathcal{L}_{L_1},
+\]
+where $\lambda=100$ balances color fidelity and perceptual realism.
+
+\subsubsection{Training Strategy}
+
+Training was conducted with mixed precision for computational efficiency. The Adam optimizer was used with a learning rate of $2 \times 10^{-4}$ for the generator and $1 \times 10^{-4}$ for the discriminator. The network was trained for 200 epochs. Data augmentation included random horizontal flips and brightness jittering.
+
+\subsection{Implementation Details}
+
+The full pipeline used a dataset of 10,000 cat and dog images sourced from a local directory and split into training (80\%) and validation (20\%) sets. Each image underwent preprocessing to grayscale and resizing. Data was loaded using efficient custom \texttt{Dataset} and \texttt{DataLoader} classes with parallel workers.
+
+Intermediate outputs from each stage (e.g., reassembled jigsaw images, denoised images) were saved to disk for inspection and further processing. Model checkpoints, training logs, and metrics were recorded using TensorBoard and wandb for reproducibility.
+
+
+\section{\label{sec:results}Results and Discussion} %%% DO NOT CHANGE!
+
+The proposed three stage image restoration pipeline—consisting of jigsaw puzzle reconstruction, image denoising, and image colorization—was evaluated both qualitatively and quantitatively.
+
+\subsection{Jigsaw Puzzle Reconstruction}
+
+The jigsaw reconstruction model demonstrated excellent performance on the validation dataset. Given the relatively low complexity of a $3\times3$ puzzle configuration, the model was able to predict the correct position of each tile with a validation accuracy of 98\%. This high accuracy confirms the model's strong ability to learn spatial relationships and semantic structures even under noisy conditions. An example of the orginal image changed to noisy grayscale jigsaw and then reconstructed is shown in Figure~\ref{fig:step1}, ~\ref{fig:step2}.
+
+\subsection{Image Denoising}
+
+For the denoising task, traditional accuracy metrics are not applicable due to the pixel wise nature of the output. Instead, the model's performance was evaluated using loss based and perceptual measures. The U-Net denoising model achieved a final Mean Squared Error (MSE) loss of 0.0015 on the validation set. Visual inspection of the denoised images showed that the model was effective at removing Gaussian noise while preserving important image details. An example is shown in Figure ~\ref{fig:step3}
+
+\subsection{Image Colorization}
+
+Similarly, the colorization model was evaluated using the $L_1$ loss and adversarial loss from the conditional GAN framework. The final generator loss for the colorization model was 0.086, indicating good convergence. The colorized outputs appeared realistic, with natural looking tones and shading, as seen in Figure~\ref{fig:step4}. However, color accuracy was occasionally limited due to the grayscale nature of the input, which lacks semantic cues for precise color assignment.
+
+\subsection{Pipeline Visualization}
+
+Figures 1 to 4 presents an example image progressing through each stage of the pipeline: the initial scrambled and noisy grayscale input, the reconstructed image after the jigsaw model, the denoised result, and the final colorized output. These visualizations highlight the effectiveness of the sequential design in progressively enhancing the image quality.
+
+\subsection{Challenges and Limitations}
+
+Among the three stages, the jigsaw puzzle task posed the greatest technical challenge. It required modeling spatial relationships across tiles, designing an effective positional prediction mechanism, and processing large batches of high dimensional data all of which demanded significant computational resources.
+
+
+
+
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\columnwidth}
+        \includegraphics[width=\textwidth]{0051.png}
+        \caption{Original colored image}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\columnwidth}
+        \includegraphics[width=\textwidth]{original_51.png}
+        \caption{Noisy grayscale jigsaw image}
+    \end{subfigure}
+    \caption{\textbf{Input image preparation.} The original image is first converted to grayscale, then noise is added and finally it is split into shuffled jigsaw tiles. This simulates a corrupted input, serving as the starting point for the full image restoration pipeline.}
+    \label{fig:step1}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\columnwidth}
+        \includegraphics[width=\textwidth]{original_51.png}
+        \caption{Noisy grayscale jigsaw}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\columnwidth}
+        \includegraphics[width=\textwidth]{jigsaw.png}
+        \caption{Solved jigsaw (still noisy)}
+    \end{subfigure}
+    \caption{\textbf{Jigsaw puzzle solving.} The model predicts the correct tile positions of the input jigsaw puzzle. Although the image remains noisy and in grayscale, this step recovers spatial coherence and is crucial for downstream denoising and colorization.}
+    \label{fig:step2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\columnwidth}
+        \includegraphics[width=\textwidth]{jigsaw.png}
+        \caption{Solved jigsaw (noisy)}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\columnwidth}
+        \includegraphics[width=\textwidth]{denoised.png}
+        \caption{Denoised grayscale image}
+    \end{subfigure}
+    \caption{\textbf{Image denoising.} After solving the jigsaw, the denoising model removes random pixel noise. This step helps improve the visual quality and makes the image suitable for accurate colorization.}
+    \label{fig:step3}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.45\columnwidth}
+        \includegraphics[width=\textwidth]{denoised.png}
+        \caption{Denoised grayscale}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.45\columnwidth}
+        \includegraphics[width=\textwidth]{pred_51_color.png}
+        \caption{Colorized image}
+    \end{subfigure}
+    \caption{\textbf{Image colorization.} In the final stage, the colorization model transforms the clean grayscale image into a fully restored color image, completing the pipeline from damaged input to high quality output.}
+    \label{fig:step4}
+\end{figure}
+
+
+
+\section{\label{sec:conclusion}Conclusions and Outlook} %%% DO NOT CHANGE!
+This project presented a three stage image restoration pipeline that effectively reconstructs scrambled, noisy grayscale images and restores them to high quality color outputs. The experimental results demonstrate that each stage jigsaw solving, denoising, and colorization contributes significantly to the progressive enhancement of image quality. The pipeline performed well on the chosen dataset of cats and dogs, achieving strong quantitative and qualitative results.
+
+However, the models were trained on a narrow domain, which limits their applicability to general images. Extending this work to broader domains would require significantly larger and more diverse datasets, such as ImageNet, and access to high performance computational resources (e.g., multiple NVIDIA H100 or H200 GPUs), which were beyond the scope of this project.
+
+Future work may include exploring reinforcement learning techniques for the jigsaw task, enabling more flexible and scalable learning strategies. Additionally, integrating transfer learning and self supervised learning could reduce the dependence on large annotated datasets. Improving model generalization across varied image domains remains an important goal for further research.
+
+\section{\label{sec:Contribution}Contributions} %%% DO NOT CHANGE!
+All contributions to this work were carried out by the author.
+
+\section{\label{sec:COI}Conflict of Interest} %%% DO NOT CHANGE!
+The author declares no conflict of interest.
+
+\section{\label{sec:datacode}Data and Code Availability} %%% DO NOT CHANGE!
+The dataset used in this study is available at:  
+\url{https://www.kaggle.com/datasets/andrewmvd/animal-faces}
+
+The codebase is accessible at:  
+\url{https://github.com/AliSoltani7899/Jigsaw-enhancement}
+
+
+\printbibliography
+
+
+\end{document}
